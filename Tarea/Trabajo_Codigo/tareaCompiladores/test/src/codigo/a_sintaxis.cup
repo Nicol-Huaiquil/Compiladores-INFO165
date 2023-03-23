@@ -1,0 +1,94 @@
+package codigo;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import java_cup.runtime.Symbol;
+
+action code
+{:
+public class Archivo{
+	public static String name;
+	public static File file;
+	public static void crear(String nombre) throws IOException {
+		Archivo.file = new File(nombre);
+		if(Archivo.file.createNewFile()) {
+			Archivo.name = nombre;
+		}
+	}
+	public static void abrir(String nombre) {
+		Archivo.file = new File(nombre);
+		Archivo.name = nombre;
+	}
+	public static void cerrar() {
+		Archivo.name = null;
+		Archivo.file = null;
+	}
+	public static void escribe(String data) throws IOException {
+		FileWriter fileW = new FileWriter(Archivo.file, true);
+		BufferedWriter buffW = new BufferedWriter(fileW);
+		buffW.write(data);
+		buffW.close();
+	}
+	public static void getData() throws IOException {
+		FileReader fileR = new FileReader(Archivo.file);
+		BufferedReader buffR = new BufferedReader(fileR);
+        String st = buffR.readLine();
+        while (st != null) {
+        	String[] arrOfStr = st.split(",");
+        	String line = String.format("%4s", arrOfStr[0]) +" "+ String.format("%-30s", arrOfStr[1]) + String.format("%-10s", arrOfStr[2]) + String.format("%-30s", arrOfStr[3]) + String.format("%-15s", arrOfStr[4]);
+            System.out.println(line);
+            st = buffR.readLine();
+        }
+		buffR.close();
+	}
+	public static void getData(String id) throws IOException {
+		FileReader fileR = new FileReader(Archivo.file);
+		BufferedReader buffR = new BufferedReader(fileR);
+        String st = buffR.readLine();
+        while ((st != null) && !st.split(",")[0].equals(id)){
+    		st = buffR.readLine();
+        }
+        if((st != null) && st.split(",")[0].equals(id)){
+        	String[] arrOfStr = st.split(",");
+        	String line = String.format("%4s", arrOfStr[0]) +" "+ String.format("%-30s", arrOfStr[1]) + String.format("%-10s", arrOfStr[2]) + String.format("%-30s", arrOfStr[3]) + String.format("%-15s", arrOfStr[4]);
+            System.out.println(line);
+        }
+		buffR.close();
+	}
+}
+:};
+
+parser code
+{:
+    private Symbol s;
+    
+    public void syntax_error(Symbol s){
+        this.s = s;
+    }
+
+    public Symbol getS(){
+        return this.s;
+}
+:};
+
+terminal INICIA, CREA, ABRE, INGRESA, LISTA, MUESTRA, CIERRA, TERMINA, SIMBOLO, ERROR;
+terminal String ARCHIVO, ENTERO, OCUPACION, DIRECCION, NOMBRE;
+
+non terminal comienza;
+
+start with comienza;
+
+comienza ::= INICIA
+| TERMINA {: System.out.println("Terminando programa"); System.exit(0); :}
+| CREA SIMBOLO ARCHIVO:arch SIMBOLO {: Archivo.crear(arch); :}
+| ABRE SIMBOLO ARCHIVO:arch SIMBOLO {: Archivo.abrir(arch); :}
+| CIERRA {: Archivo.cerrar(); :}
+| LISTA {: Archivo.getData(); :}
+| INGRESA SIMBOLO ENTERO:id SIMBOLO NOMBRE:name SIMBOLO ENTERO:age SIMBOLO OCUPACION:ocup SIMBOLO DIRECCION:dir SIMBOLO {: String info = id + "," + name + "," + age + "," + ocup + "," + dir + "\n"; Archivo.escribe(info); :}
+| MUESTRA SIMBOLO ENTERO:id SIMBOLO {: Archivo.getData(id); :}
+;
